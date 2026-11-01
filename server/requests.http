@@ -1,0 +1,8 @@
+### A route that doesn't exist (expect 404)
+GET {{baseUrl}}/nothing-here
+
+### Broken JSON in the body (expect 400)
+POST {{baseUrl}}/health
+Content-Type: application/json
+
+{ "name": }
