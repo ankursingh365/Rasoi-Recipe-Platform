@@ -6,3 +6,37 @@ POST {{baseUrl}}/health
 Content-Type: application/json
 
 { "name": }
+
+### First page of recipes (24 per page, most popular first)
+GET {{baseUrl}}/recipes
+
+### Vegetarian desserts ready in 30 minutes, quickest first
+GET {{baseUrl}}/recipes?course=Dessert&diet=vegetarian&maxTime=30&sort=quickest
+
+### Page 2, with 5 per page
+GET {{baseUrl}}/recipes?page=2&limit=5
+
+### Bad values (expect 400 with a message for each field)
+GET {{baseUrl}}/recipes?course=Lunch&limit=500&page=abc
+
+### The allowed values for each filter
+GET {{baseUrl}}/recipes/filters
+
+
+### Search: best matches first (+ means a space in a URL)
+GET {{baseUrl}}/recipes?q=paneer+butter+masala&limit=5
+
+### Search inside one course
+GET {{baseUrl}}/recipes?q=dosa&course=Breakfast&limit=5
+
+### A half-typed word: falls back to matching letters inside titles
+GET {{baseUrl}}/recipes?q=panee&limit=5
+
+### One recipe, with similar dishes
+GET {{baseUrl}}/recipes/masala-karela
+
+### A recipe that doesn't exist (expect 404)
+GET {{baseUrl}}/recipes/no-such-dish
+
+### Not a valid slug (expect 400)
+GET {{baseUrl}}/recipes/Masala_Karela
