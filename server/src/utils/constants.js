@@ -47,3 +47,24 @@ export const EVERYDAY_SPICES = [
 // The colour of the finished dish. The app uses it to draw a coloured plate
 // for recipes that have no photo (none of the 5,909 recipes do).
 export const TONES = ['brown', 'yellow', 'cream', 'green', 'red', 'orange'];
+
+// The meals of a day, in order. Used by the meal planner (step 16).
+export const MEAL_SLOTS = ['breakfast', 'lunch', 'snack', 'dinner'];
+
+// Grocery aisles in the order you'd walk through a kirana shop. The names match the
+// ingredient catalogue's categories.
+export const AISLES = [
+  'Fruits & Vegetables',
+  'Dairy & Eggs',
+  'Meat & Seafood',
+  'Grains, Flours & Pulses',
+  'Spices & Masalas',
+  'Oils & Condiments',
+  'Nuts & Dry Fruits',
+  'Sweeteners',
+  'Bakery & Baking',
+  'Other',
+];
+
+// Never worth putting on a shopping list.
+export const NOT_SHOPPED = ['water', 'ice', 'ice cube'];

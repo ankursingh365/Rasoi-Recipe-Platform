@@ -1,3 +1,8 @@
+@baseUrl = http://localhost:4000/api
+
+### Is the server up?
+GET {{baseUrl}}/health
+
 ### A route that doesn't exist (expect 404)
 GET {{baseUrl}}/nothing-here
 
@@ -90,3 +95,213 @@ POST {{baseUrl}}/auth/logout-all
 ### Try a token you copied before "log out of all devices" (expect 401)
 GET {{baseUrl}}/auth/me
 Cookie: rasoi_token=PASTE-THE-OLD-TOKEN-HERE
+
+### Cook with what you have (+ means a space in a URL)
+GET {{baseUrl}}/pantry/recipes?have=onion,tomato,potato,green+chilli,ginger,garlic,coriander+leaves&limit=6
+
+### The same pantry, without assuming salt, oil, water and the spice box
+GET {{baseUrl}}/pantry/recipes?have=onion,tomato,potato,green+chilli,ginger,garlic,coriander+leaves&staples=false&spices=false&limit=3
+
+### Paneer night: main courses only
+GET {{baseUrl}}/pantry/recipes?have=paneer,onion,tomato,capsicum,butter,cream,ginger,garlic&course=Main+Course&limit=5
+
+### Nothing in the pantry (expect 400)
+GET {{baseUrl}}/pantry/recipes
+
+### Ingredient autocomplete: "jee" finds cumin seeds through its Hindi name, jeera
+GET {{baseUrl}}/ingredients?q=jee
+
+### Autocomplete matches the start of any word: "chil" finds green chilli
+GET {{baseUrl}}/ingredients?q=chil
+
+### Your pantry in Hindi: pyaz, tamatar, aloo, hari mirch, adrak, lehsun, dhania
+GET {{baseUrl}}/pantry/recipes?have=pyaz,tamatar,aloo,hari+mirch,adrak,lehsun,dhania&limit=6
+
+### Plurals and a word Rasoi doesn't know
+GET {{baseUrl}}/pantry/recipes?have=onions,tomatoes,unicorn&limit=3
+
+### Save your pantry (log in first: the "Log in" request above)
+PUT {{baseUrl}}/pantry
+Content-Type: application/json
+
+{
+  "items": ["Pyaz", "tamatar", "aloo", "jeera", "dahi", "onions", "unicorn"]
+}
+
+### Your saved pantry
+GET {{baseUrl}}/pantry
+
+
+### ---------- PANTRY TEST: send these from top to bottom ----------
+### Empty the saved pantry (to run the test again from the start)
+PUT {{baseUrl}}/pantry
+Content-Type: application/json
+
+{
+  "items": []
+}
+### 1. Log in
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ankur@example.com",
+  "password": "masala-dosa-42"
+}
+
+### 2. Your saved pantry (empty at first)
+GET {{baseUrl}}/pantry
+
+### 3. Save your pantry
+PUT {{baseUrl}}/pantry
+Content-Type: application/json
+
+{
+  "items": ["Pyaz", "tamatar", "aloo", "jeera", "dahi", "onions", "unicorn"]
+}
+
+### 4. Your saved pantry again (now it has 5 items)
+GET {{baseUrl}}/pantry
+
+### 5. Log out
+POST {{baseUrl}}/auth/logout
+
+### 6. Your saved pantry after logging out (expect 401)
+GET {{baseUrl}}/pantry
+
+
+# ---------- SAVED RECIPES (log in first) ----------
+
+### Save a recipe
+PUT {{baseUrl}}/saved/masala-karela
+
+### Save another
+PUT {{baseUrl}}/saved/tomato-garlic-chutney
+
+### And a third
+PUT {{baseUrl}}/saved/paneer-butter-masala
+
+### Your saved recipes, most recently saved first
+GET {{baseUrl}}/saved
+
+### Un-save one
+DELETE {{baseUrl}}/saved/tomato-garlic-chutney
+
+
+# ---------- REVIEWS ----------
+
+### Write your review
+PUT {{baseUrl}}/recipes/paneer-butter-masala/reviews/mine
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Restaurant-style, and easier than I expected."
+}
+
+### Change your review: the same request with a new rating
+PUT {{baseUrl}}/recipes/paneer-butter-masala/reviews/mine
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "comment": "Very good. A little too much cream for me."
+}
+
+### A second person: sign up as Priya (REST Client is now logged in as Priya)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Priya Sharma",
+  "email": "priya@example.com",
+  "password": "gulab-jamun-9"
+}
+
+### Priya's review
+PUT {{baseUrl}}/recipes/paneer-butter-masala/reviews/mine
+Content-Type: application/json
+
+{
+  "rating": 3,
+  "comment": "Good gravy, but it took me longer than an hour."
+}
+
+### Everyone's reviews, newest first (no login needed)
+GET {{baseUrl}}/recipes/paneer-butter-masala/reviews
+
+### The recipe page, with "saved" and "myReview" for whoever is logged in
+GET {{baseUrl}}/recipes/paneer-butter-masala
+
+### Most popular first: reviewed recipes rise to the top
+GET {{baseUrl}}/recipes?limit=3
+
+### Delete your review
+DELETE {{baseUrl}}/recipes/paneer-butter-masala/reviews/mine
+
+### Not a valid rating (expect 400)
+PUT {{baseUrl}}/recipes/paneer-butter-masala/reviews/mine
+Content-Type: application/json
+
+{
+  "rating": 6
+}
+
+
+### ---------- MEAL PLANNER (log in first) ----------
+# A week is named by its Monday. Paste meal ids from the responses into these two lines:
+@pongalMeal = PASTE-THE-PONGAL-MEAL-ID
+@riceMeal = PASTE-THE-RICE-MEAL-ID
+
+### This week's plan (empty at first)
+GET {{baseUrl}}/planner/2026-11-02
+
+### Monday dinner: Paneer Butter Masala for 6 (the recipe serves 4)
+POST {{baseUrl}}/planner/2026-11-02/meals
+Content-Type: application/json
+
+{
+  "day": 0,
+  "slot": "dinner",
+  "recipe": "paneer-butter-masala",
+  "servings": 6
+}
+
+### Tuesday breakfast: Pudina Khara Pongal for 2
+POST {{baseUrl}}/planner/2026-11-02/meals
+Content-Type: application/json
+
+{
+  "day": 1,
+  "slot": "breakfast",
+  "recipe": "pudina-khara-pongal",
+  "servings": 2
+}
+
+### Wednesday lunch: Spicy Tomato Rice, as the recipe is written (no servings)
+POST {{baseUrl}}/planner/2026-11-02/meals
+Content-Type: application/json
+
+{
+  "day": 2,
+  "slot": "lunch",
+  "recipe": "spicy-tomato-rice"
+}
+
+### Move the pongal to Thursday, and make it for 4
+PATCH {{baseUrl}}/planner/2026-11-02/meals/{{pongalMeal}}
+Content-Type: application/json
+
+{
+  "day": 3,
+  "servings": 4
+}
+
+### Remove the tomato rice (send it twice: the second time gives 404)
+DELETE {{baseUrl}}/planner/2026-11-02/meals/{{riceMeal}}
+
+### The week's grocery list
+GET {{baseUrl}}/planner/2026-11-02/grocery
+
+### A Tuesday isn't a week (expect 400)
+GET {{baseUrl}}/planner/2026-11-03

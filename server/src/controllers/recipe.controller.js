@@ -1,8 +1,9 @@
 import { Recipe } from '../models/Recipe.js';
-import { AppError } from '../utils/AppError.js';
+import { Review } from '../models/Review.js';
+import { SavedRecipe } from '../models/SavedRecipe.js';
+import { findRecipeBySlug } from '../services/recipe.service.js';
 import {
   COURSES,
-  DIET_FILTER,
   DIETS,
   EVERYDAY_SPICES,
   REGIONS,
@@ -11,10 +12,7 @@ import {
   TAGS,
 } from '../utils/constants.js';
 import { escapeRegex } from '../utils/escapeRegex.js';
-
-// Only what a recipe card shows. Lists never send the ingredients or steps.
-const CARD_FIELDS =
-  'title subtitle slug course diet cuisine region tags totalTime servings tone image ratingAvg ratingCount';
+import { buildRecipeFilter, CARD_FIELDS, CARD_PROJECTION } from '../utils/recipeQuery.js';
 
 // _id comes last in every sort as a tie-breaker, so the order is always the same.
 // Without it, recipes with equal values could swap places between pages.
@@ -28,16 +26,11 @@ const SORT_ORDERS = {
 
 // GET /api/recipes?q=paneer&course=Main Course&diet=vegetarian&maxTime=30&sort=quickest&page=2
 export async function listRecipes(req, res) {
-  const { q, page, limit, sort, course, diet, region, tag, maxTime } = req.valid.query;
+  const { q, page, limit, sort, ...options } = req.valid.query;
 
   // Build the MongoDB filter from whichever options were sent.
-  const filter = {};
-  if (course) filter.course = course;
-  if (diet) filter.diet = { $in: DIET_FILTER[diet] };
-  if (region) filter.region = region;
-  if (tag) filter.tags = tag;
-  if (maxTime) filter.totalTime = { $lte: maxTime };
-  else if (sort === 'quickest') filter.totalTime = { $ne: null }; // can't rank recipes with no time
+  const filter = buildRecipeFilter(options);
+  if (sort === 'quickest' && !options.maxTime) filter.totalTime = { $ne: null }; // no time, no rank
 
   // Search with the text index first: it matches whole words and scores each recipe.
   // If that finds nothing (say, a half-typed "panee"), look for the letters inside titles.
@@ -73,12 +66,18 @@ export function getFilters(req, res) {
 }
 
 // GET /api/recipes/:slug: one recipe with everything in it, plus similar dishes.
+// Logged-in users also learn whether they saved it, and see their own review.
 export async function getRecipe(req, res) {
-  const recipe = await Recipe.findOne({ slug: req.valid.params.slug }).lean();
-  if (!recipe) throw new AppError(404, 'Recipe not found');
+  const recipe = await findRecipeBySlug(req.valid.params.slug);
+  const mine = req.user && { user: req.user._id, recipe: recipe._id };
 
-  const similar = await findSimilar(recipe);
-  res.json({ recipe, similar });
+  const [similar, saved, myReview] = await Promise.all([
+    findSimilar(recipe),
+    mine ? SavedRecipe.exists(mine) : null,
+    mine ? Review.findOne(mine).select('rating comment').lean() : null,
+  ]);
+
+  res.json({ recipe, similar, saved: Boolean(saved), myReview });
 }
 
 // Salt, oil and the everyday spices are in almost everything, so they don't count.
@@ -119,11 +118,6 @@ async function findSimilar(recipe) {
     { $sort: { similarity: -1, ratingCount: -1, _id: 1 } },
     { $limit: 6 },
     // 5. Send card fields only, plus how many ingredients they share.
-    { $project: { ...toProjection(CARD_FIELDS), shared: 1 } },
+    { $project: { ...CARD_PROJECTION, shared: 1 } },
   ]);
-}
-
-// "title slug" -> { title: 1, slug: 1 }, the format $project expects.
-function toProjection(fields) {
-  return Object.fromEntries(fields.split(' ').map((field) => [field, 1]));
 }

@@ -10,7 +10,7 @@ export function validate(part, schema) {
     if (!result.success) {
       const details = {};
       for (const issue of result.error.issues) {
-        details[issue.path.join('.') || part] = issue.message;
+        details[issue.path.join('.') || part] ??= issue.message; // keep each field's first problem
       }
       return next(new AppError(400, 'Some fields are invalid', details));
     }

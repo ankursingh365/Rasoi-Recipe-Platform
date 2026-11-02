@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema(
     // Goes up by one on "log out of all devices". Every login token records the number it
     // was made with, and tokens with an old number stop working (see middleware/auth.js).
     tokenVersion: { type: Number, default: 0 },
+    // The ingredient keys this user keeps in their kitchen (step 14).
+    pantry: { type: [String], default: [] },
   },
   {
     timestamps: true,
