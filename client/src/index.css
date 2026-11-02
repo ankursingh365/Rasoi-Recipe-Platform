@@ -1,0 +1,161 @@
+/* The Rasoi design system: the font, the colours and a few shared styles. */
+@import '@fontsource-variable/anek-latin/wdth.css';
+@import 'tailwindcss';
+
+/*
+ * Colours: "steel and spice". Cool steel greys for the frame, like a stainless-steel Indian
+ * kitchen, and spice colours only where they mean something:
+ *   turmeric = actions and selection
+ *   leaf     = vegetarian, and "you have this"
+ *   chilli   = non-vegetarian, "missing" and errors
+ */
+:root {
+  --page: #f2f4f5;
+  --surface: #ffffff;
+  --sunken: #e9edef;
+  --line: #d3dade;
+  --line-strong: #aeb8be;
+  --ink: #1b2428;
+  --ink-soft: #46535a;
+  --muted: #5e6b72;
+  --turmeric: #f0ae1c;
+  --turmeric-soft: #fcefcb;
+  --leaf: #2e6b34;
+  --leaf-soft: #e1efdf;
+  --chilli: #b02a1e;
+  --chilli-soft: #f8e1de;
+  --egg: #b0700c;
+  --steel-rim: #c9d1d5;
+  --steel-shine: #f7f9fa;
+  color-scheme: light;
+}
+
+/* The same names with dark values, used when the computer is set to dark mode. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #12181b;
+    --surface: #1a2226;
+    --sunken: #222c31;
+    --line: #2f3b41;
+    --line-strong: #45535a;
+    --ink: #e9eef0;
+    --ink-soft: #b8c3c8;
+    --muted: #93a1a8;
+    --turmeric: #f2b331;
+    --turmeric-soft: #3a2e12;
+    --leaf: #7cc17f;
+    --leaf-soft: #1d3320;
+    --chilli: #f07f70;
+    --chilli-soft: #3d1e1a;
+    --egg: #e5a542;
+    --steel-rim: #3a464c;
+    --steel-shine: #55636a;
+    color-scheme: dark;
+  }
+}
+
+/* Turn the colours and the font into Tailwind classes: bg-page, text-ink, border-line, font-sans. */
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-turmeric: var(--turmeric);
+  --color-turmeric-soft: var(--turmeric-soft);
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+  --color-chilli: var(--chilli);
+  --color-chilli-soft: var(--chilli-soft);
+  --color-egg: var(--egg);
+  --color-steel-rim: var(--steel-rim);
+  --color-steel-shine: var(--steel-shine);
+  --font-sans: 'Anek Latin Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--page);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Headings are set wide: Anek Latin can stretch from narrow (75%) to wide (125%). */
+  h1,
+  h2,
+  h3 {
+    font-stretch: 118%;
+    font-weight: 650;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+
+  /* A clear turmeric ring around whatever the keyboard has selected. */
+  :focus-visible {
+    outline: 3px solid var(--turmeric);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Buttons. Always use with a variant: "btn btn-primary" or "btn btn-quiet". */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.75rem; /* 44px: comfortable to tap on a phone */
+    padding: 0 1.1rem;
+    border-radius: 0.5rem;
+    font-weight: 560;
+    white-space: nowrap;
+    transition: background-color 120ms ease;
+  }
+
+  /* The main action on a page: turmeric. */
+  .btn-primary {
+    background: var(--turmeric);
+    color: #1b2428; /* dark text on turmeric, in light and dark mode */
+  }
+  .btn-primary:hover {
+    background: color-mix(in srgb, var(--turmeric) 85%, black);
+  }
+
+  /* Everything else: an outline. */
+  .btn-quiet {
+    border: 1px solid var(--line-strong);
+  }
+  .btn-quiet:hover {
+    background: var(--sunken);
+  }
+
+  /* Text links: an underline in turmeric. */
+  .link {
+    text-decoration: underline;
+    text-decoration-color: var(--turmeric);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  
+  /* A button you can't use right now, like "Previous" on page 1: faded, and no hover. */
+  .btn:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* Text boxes and drop-down menus. */
+  .field {
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .field::placeholder {
+    color: var(--muted);
+  }
+}
