@@ -40,3 +40,53 @@ GET {{baseUrl}}/recipes/no-such-dish
 
 ### Not a valid slug (expect 400)
 GET {{baseUrl}}/recipes/Masala_Karela
+
+### Create an account (send it twice: the second time gives 409)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Ankur Singh",
+  "email": "ankur@example.com",
+  "password": "masala-dosa-42"
+}
+
+### Missing and invalid fields (expect 400)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "short"
+}
+
+### Log in. REST Client keeps the cookie that comes back and sends it with later requests.
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ankur@example.com",
+  "password": "masala-dosa-42"
+}
+
+### Who am I? (needs the login cookie)
+GET {{baseUrl}}/auth/me
+
+### Wrong password (expect 401)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ankur@example.com",
+  "password": "wrong-password"
+}
+
+### Log out. Afterwards, "Who am I?" gives 401.
+POST {{baseUrl}}/auth/logout
+
+### Log out of all devices: every login token made before this stops working
+POST {{baseUrl}}/auth/logout-all
+
+### Try a token you copied before "log out of all devices" (expect 401)
+GET {{baseUrl}}/auth/me
+Cookie: rasoi_token=PASTE-THE-OLD-TOKEN-HERE
